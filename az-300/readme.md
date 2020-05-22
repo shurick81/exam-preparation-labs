@@ -1,0 +1,3 @@
+| Template | Deploy button | Reference deployment time | Reference cost | 
+|-|-|-|-|
+|[https://raw.githubusercontent.com/shurick81/exam-preparation-labs/master/az-300/ARM/cosmosdb.json](https://raw.githubusercontent.com/shurick81/exam-preparation-labs/master/az-300/ARM/cosmosdb.json)|[![Deploy To Azure](https://raw.githubusercontent.com/shurick81/exam-preparation-labs/master/doc/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fshurick81%2Fexam-preparation-labs%2Fmaster%2Faz-300%2FARM%2Fcosmosdb.json)|22min|2.8 USD/hour|

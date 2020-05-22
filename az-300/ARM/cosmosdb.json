@@ -1,0 +1,71 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "variables": {
+        "accountName": "[uniquestring(resourceGroup().id)]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts",
+            "name": "[variables('accountName')]",
+            "apiVersion": "2020-03-01",
+            "kind": "GlobalDocumentDB",
+            "location": "westeurope",
+            "properties": {
+                "consistencyPolicy": {
+                    "defaultConsistencyLevel": "Session"
+                },
+                "locations": [
+                    {
+                        "locationName": "westeurope",
+                        "failoverPriority": 0,
+                        "isZoneRedundant": false
+                    },
+                    {
+                        "locationName": "westus",
+                        "failoverPriority": 1,
+                        "isZoneRedundant": false
+                    }
+                ],
+                "databaseAccountOfferType": "Standard",
+                "enableAutomaticFailover": true
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
+            "name": "[concat(variables('accountName'), '/00')]",
+            "apiVersion": "2020-03-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('accountName'))]"
+            ],
+            "properties": {
+                "resource": {
+                    "id": "00"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
+            "name": "[concat(variables('accountName'), '/00/Container1')]",
+            "apiVersion": "2020-03-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', variables('accountName'), '00')]"
+            ],
+            "properties": {
+                "resource": {
+                    "id": "Container1",
+                    "partitionKey": {
+                        "paths": [
+                            "/day"
+                        ],
+                        "kind": "Hash"
+                    },
+                    "defaultTtl": 86400
+                },
+                "options": {
+                    "throughput": "10000"
+                }
+            }
+        }
+    ]
+}
