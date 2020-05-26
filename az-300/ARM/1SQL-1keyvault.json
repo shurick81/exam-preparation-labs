@@ -1,0 +1,65 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "variables": {
+        "vaultName": "[uniquestring(resourceGroup().id)]",
+        "sqlServerName": "[uniquestring(resourceGroup().id)]"
+    },
+    "parameters": {
+        "principalIdentity": {
+            "type": "string",
+            "metadata": {
+                "description": "The principal that you use to login in Azure"
+            }
+        }
+    },
+    "resources": [
+        {
+            "name": "[variables('sqlServerName')]",
+            "type": "Microsoft.Sql/servers",
+            "apiVersion": "2019-06-01-preview",
+            "location": "westeurope",
+            "properties": {
+                "administratorLogin": "shurick81",
+                "administratorLoginPassword": "c0mp1Expa~~1",
+                "version": "12.0"
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults",
+            "name": "[variables('vaultName')]",
+            "apiVersion": "2019-09-01",
+            "location": "westeurope",
+            "properties": {
+                "tenantId": "[subscription().tenantId]",
+                "sku": {
+                    "name": "Standard",
+                    "family": "A"
+                },
+                "networkAcls": {
+                    "defaultAction": "Allow",
+                    "bypass": "AzureServices"
+                },
+                "accessPolicies": [
+                    {
+                        "objectId": "[parameters('principalIdentity')]",
+                        "tenantId": "[subscription().tenantId]",
+                        "permissions": {
+                            "keys": [
+                                "Get",
+                                "List",
+                                "Update",
+                                "Create",
+                                "Import",
+                                "Delete",
+                                "Recover",
+                                "Backup",
+                                "Restore"
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,130 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "variables": {
+        "storageAccountName": "[uniquestring(resourceGroup().id)]",
+        "iotHubName": "[concat('tsi', uniquestring(resourceGroup().id))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2018-11-01",
+            "name": "[variables('storageAccountName')]",
+            "location": "westeurope",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "kind": "Storage",
+            "properties": {}
+        },
+        {
+            "apiVersion": "2018-04-01",
+            "type": "Microsoft.Devices/IotHubs",
+            "name": "[variables('iotHubName')]",
+            "location": "westeurope",
+            "sku": {
+                "name": "S1",
+                "tier": "Standard",
+                "capacity": 1
+            }
+        },
+        {
+            "apiVersion": "2018-04-01",
+            "name": "[concat(variables('iotHubName'), '/events/tsiquickstart')]",
+            "type": "Microsoft.Devices/iotHubs/eventhubEndpoints/ConsumerGroups",
+            "dependsOn": [
+                "[concat('Microsoft.Devices/iothubs/', variables('iotHubName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.TimeSeriesInsights/environments",
+            "name": "00",
+            "apiVersion": "2018-08-15-preview",
+            "location": "westeurope",
+            "kind": "LongTerm",
+            "properties": {
+                "storageConfiguration": {
+                    "accountName": "[variables('storageAccountName')]",
+                    "managementKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2018-07-01').keys[0].value]"
+                },
+                "timeSeriesIdProperties": [
+                    {
+                        "name": "811426cd-4635-460e-9d60-bdc2945329bc",
+                        "type": "String"
+                    }
+                ],
+                "warmStoreConfiguration": {
+                    "dataRetention": "P7D"
+                }
+            },
+            "sku": {
+                "name": "L1",
+                "capacity": 1
+            },
+            "resources": [
+                {
+                    "type": "eventSources",
+                    "name": "tsiquickstart",
+                    "apiVersion": "2018-08-15-preview",
+                    "location": "westeurope",
+                    "kind": "Microsoft.IoTHub",
+                    "dependsOn": [
+                        "[concat('Microsoft.TimeSeriesInsights/environments/', '00')]",
+                        "[concat('Microsoft.Devices/IotHubs/', variables('iotHubName'))]",
+                        "[concat('Microsoft.Devices/IotHubs/', variables('iotHubName'), '/eventHubEndpoints/events/ConsumerGroups/tsiquickstart')]"
+                    ],
+                    "properties": {
+                        "eventSourceResourceId": "[resourceId('Microsoft.Devices/IotHubs', variables('iotHubName'))]",
+                        "iotHubName": "[variables('iotHubName')]",
+                        "consumerGroupName": "[concat(variables('iotHubName'), '/events/tsiquickstart')]",
+                        "keyName": "service",
+                        "sharedAccessKey": "[listkeys(resourceId('Microsoft.Devices/IoTHubs/IotHubKeys', variables('iotHubName'), 'service'), '2018-04-01').primaryKey]",
+                        "timestampPropertyName": ""
+                    }
+                }
+            ],
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.TimeSeriesInsights/environments",
+            "name": "01",
+            "apiVersion": "2018-08-15-preview",
+            "location": "westeurope",
+            "kind": "Standard",
+            "properties": {
+                "dataRetentionTime": "P30D"
+            },
+            "sku": {
+                "name": "S1",
+                "capacity": 1
+            },
+            "resources": [
+                {
+                    "type": "eventSources",
+                    "name": "tsiquickstart",
+                    "apiVersion": "2018-08-15-preview",
+                    "location": "westeurope",
+                    "kind": "Microsoft.IoTHub",
+                    "dependsOn": [
+                        "[concat('Microsoft.TimeSeriesInsights/environments/', '01')]",
+                        "[concat('Microsoft.Devices/IotHubs/', variables('iotHubName'))]",
+                        "[concat('Microsoft.Devices/IotHubs/', variables('iotHubName'), '/eventHubEndpoints/events/ConsumerGroups/tsiquickstart')]"
+                    ],
+                    "properties": {
+                        "eventSourceResourceId": "[resourceId('Microsoft.Devices/IotHubs', variables('iotHubName'))]",
+                        "iotHubName": "[variables('iotHubName')]",
+                        "consumerGroupName": "[concat(variables('iotHubName'), '/events/tsiquickstart')]",
+                        "keyName": "service",
+                        "sharedAccessKey": "[listkeys(resourceId('Microsoft.Devices/IoTHubs/IotHubKeys', variables('iotHubName'), 'service'), '2018-04-01').primaryKey]",
+                        "timestampPropertyName": ""
+                    }
+                }
+            ],
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+            ]
+        }
+    ]
+}
